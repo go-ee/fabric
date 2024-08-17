@@ -106,13 +106,13 @@ func Cli() (message string, err error) {
 		if transcript, err = fabric.YouTube.GrabTranscriptForUrl(currentFlags.YouTube); err != nil {
 			return
 		}
-		fmt.Println(transcript)
 
 		if currentFlags.Message != "" {
 			currentFlags.Message = currentFlags.Message + "\n" + transcript
 		} else {
 			currentFlags.Message = transcript
 		}
+
 	}
 
 	var chatter *core.Chatter

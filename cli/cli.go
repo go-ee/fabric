@@ -24,23 +24,23 @@ func Cli() (message string, err error) {
 		return
 	}
 
-	db := db.NewDb(filepath.Join(homedir, ".config/fabric"))
+	fabricDb := db.NewDb(filepath.Join(homedir, ".config/fabric"))
 
 	// if the setup flag is set, run the setup function
 	if currentFlags.Setup {
-		_ = db.Configure()
-		_, err = Setup(db, currentFlags.SetupSkipUpdatePatterns)
+		_ = fabricDb.Configure()
+		_, err = Setup(fabricDb, currentFlags.SetupSkipUpdatePatterns)
 		return
 	}
 
 	var fabric *core.Fabric
-	if err = db.Configure(); err != nil {
+	if err = fabricDb.Configure(); err != nil {
 		fmt.Println("init is failed, run start the setup procedure", err)
-		if fabric, err = Setup(db, currentFlags.SetupSkipUpdatePatterns); err != nil {
+		if fabric, err = Setup(fabricDb, currentFlags.SetupSkipUpdatePatterns); err != nil {
 			return
 		}
 	} else {
-		if fabric, err = core.NewFabric(db); err != nil {
+		if fabric, err = core.NewFabric(fabricDb); err != nil {
 			fmt.Println("fabric can't initialize, please run the --setup procedure", err)
 			return
 		}
@@ -64,7 +64,7 @@ func Cli() (message string, err error) {
 			return
 		}
 
-		if err = db.Patterns.PrintLatestPatterns(parsedToInt); err != nil {
+		if err = fabricDb.Patterns.PrintLatestPatterns(parsedToInt); err != nil {
 			return
 		}
 		return
@@ -72,7 +72,7 @@ func Cli() (message string, err error) {
 
 	// if the list patterns flag is set, run the list all patterns function
 	if currentFlags.ListPatterns {
-		err = db.Patterns.ListNames()
+		err = fabricDb.Patterns.ListNames()
 		return
 	}
 
@@ -84,13 +84,13 @@ func Cli() (message string, err error) {
 
 	// if the list all contexts flag is set, run the list all contexts function
 	if currentFlags.ListAllContexts {
-		err = db.Contexts.ListNames()
+		err = fabricDb.Contexts.ListNames()
 		return
 	}
 
 	// if the list all sessions flag is set, run the list all sessions function
 	if currentFlags.ListAllSessions {
-		err = db.Sessions.ListNames()
+		err = fabricDb.Sessions.ListNames()
 		return
 	}
 
@@ -100,6 +100,20 @@ func Cli() (message string, err error) {
 	// }
 
 	// if none of the above currentFlags are set, run the initiate chat function
+
+	if currentFlags.YouTube != "" {
+		var transcript string
+		if transcript, err = fabric.YouTube.GrabTranscriptForUrl(currentFlags.YouTube); err != nil {
+			return
+		}
+		fmt.Println(transcript)
+
+		if currentFlags.Message != "" {
+			currentFlags.Message = currentFlags.Message + "\n" + transcript
+		} else {
+			currentFlags.Message = transcript
+		}
+	}
 
 	var chatter *core.Chatter
 	if chatter, err = fabric.GetChatter(currentFlags.Model, currentFlags.Stream); err != nil {
